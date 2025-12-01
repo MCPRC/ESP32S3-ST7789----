@@ -65,3 +65,27 @@ void demo03_app() {
 void register_demo03() {
   AppManager::registerApp(0x03, demo03_app);
 }
+// 测试字体渲染
+void testFontRender() {
+  // 获取屏幕驱动
+  LCD1Driver& lcd1 = DisplayManager::getLCD1();
+  LCD2Driver& lcd2 = DisplayManager::getLCD2();
+  
+  // 获取帧缓存
+  uint16_t* fb1 = lcd1.getFrameBuffer();
+  uint16_t* fb2 = lcd2.getFrameBuffer();
+  
+  // 清屏为黑色
+  DrawUtil::clear(fb1, 0x0000);
+  DrawUtil::clear(fb2, 0x0000);
+  
+  // 绘制文字
+  FontRender::drawString(fb1, 50, 20, "Test Font", 0xFFFF);
+  FontRender::drawString(fb2, 50, 20, "Test Font", 0xFFFF);
+  
+  // 更新显示
+  DisplayManager::updateDisplays();
+  
+  // 延迟5秒
+  delay(5000);
+}
