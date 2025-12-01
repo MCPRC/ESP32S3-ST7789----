@@ -1,0 +1,99 @@
+#include <SPI.h>
+
+// ---- 硬件引脚定义 ----
+#define PIN_CS   4      // CSF → IO4
+#define PIN_SCK  10     // SCL → IO10
+#define PIN_MOSI 9      // SDA → IO9
+#define PIN_MISO 8      // SDO → IO8
+#define PIN_EN   5      // IO5 高电平输出
+
+// ---- 参数设置 ----
+#define SPI_SPEED    1000000   // SPI 1MHz
+#define SERIAL_BAUD  115200
+#define START_DELAY  3000
+#define FONT_START   0x9300    // 12×12宋体区
+#define BYTES_PER_FONT 24
+
+SPIClass spi(FSPI);
+
+//-------------------------
+// 计算 GB2312 编码的偏移地址
+uint32_t getGB2312Offset(uint8_t area, uint8_t index) {
+  uint32_t pos = (uint32_t)(area - 0xA1) * 94 + (index - 0xA1);
+  return FONT_START + pos * BYTES_PER_FONT;
+}
+
+//-------------------------
+// 从 Flash 读取一个字的 24 字节
+void readFont(uint32_t addr, uint8_t *buf) {
+  digitalWrite(PIN_CS, LOW);
+  spi.beginTransaction(SPISettings(SPI_SPEED, MSBFIRST, SPI_MODE0));
+  spi.transfer(0x03);
+  spi.transfer((addr >> 16) & 0xFF);
+  spi.transfer((addr >> 8) & 0xFF);
+  spi.transfer(addr & 0xFF);
+  for (int i = 0; i < BYTES_PER_FONT; i++)
+    buf[i] = spi.transfer(0x00);
+  spi.endTransaction();
+  digitalWrite(PIN_CS, HIGH);
+}
+
+//-------------------------
+// 打印点阵（12×12）
+void printFont(uint8_t *buf) {
+  for (int row = 0; row < 12; row++) {
+    uint16_t line = ((uint16_t)buf[row*2] << 8) | buf[row*2 + 1];
+    for (int bit = 0; bit < 12; bit++) {
+      Serial.print((line & (0x8000 >> bit)) ? "█" : " ");
+    }
+    Serial.println();
+  }
+}
+
+//-------------------------
+void setup() {
+  Serial.begin(SERIAL_BAUD);
+  Serial.println();
+  Serial.println(F("=== ESP32-S3 读取 JYC 12x12 汉字字库 ==="));
+  Serial.println(F("初始化中..."));
+
+  pinMode(PIN_EN, OUTPUT);
+  digitalWrite(PIN_EN, HIGH);
+  delay(START_DELAY);
+
+  spi.begin(PIN_SCK, PIN_MISO, PIN_MOSI, PIN_CS);
+  pinMode(PIN_CS, OUTPUT);
+  digitalWrite(PIN_CS, HIGH);
+
+  Serial.println(F("SPI 初始化完成。开始读取汉字...\n"));
+
+  uint8_t buf[BYTES_PER_FONT];
+
+  // 读取几个常用字（GB2312 编码）
+  struct { uint8_t area; uint8_t index; const char *name; } chars[] = {
+    {0xD2, 0xBB, "一"},
+    {0xB6, 0xFE, "二"},
+    {0xC8, 0xFD, "三"},
+    {0xD6, 0xD0, "中"},
+    {0xB9, 0xFA, "国"},
+  };
+
+  for (int i = 0; i < 5; i++) {
+    uint32_t addr = getGB2312Offset(chars[i].area, chars[i].index);
+    readFont(addr, buf);
+    Serial.printf("字[%s] 编码: %02X%02X 地址: 0x%06lX\n",
+                  chars[i].name, chars[i].area, chars[i].index, addr);
+    for (int j = 0; j < BYTES_PER_FONT; j++) {
+      Serial.printf("%02X ", buf[j]);
+      if ((j+1) % 12 == 0) Serial.println();
+    }
+    Serial.println("\n点阵预览:");
+    printFont(buf);
+    Serial.println("-----------------------------");
+    delay(200);
+  }
+}
+
+void loop() {
+  // 无操作
+}

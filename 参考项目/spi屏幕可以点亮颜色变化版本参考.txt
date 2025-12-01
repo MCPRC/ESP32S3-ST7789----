@@ -1,0 +1,43 @@
+#include <Adafruit_GFX.h>
+#include <Adafruit_ST7789.h>
+#include <SPI.h>
+
+// === 引脚定义（全部在 1~13 范围内） ===
+#define TFT_MOSI  9
+#define TFT_SCLK  10
+#define TFT_RST   7
+#define TFT_DC    8
+#define TFT_CS    6
+#define TFT_BL    5
+
+// 在 S3 上手动声明 SPI1（可用 VSPI/HSPI 之外的引脚）
+SPIClass spi1(1);
+Adafruit_ST7789 tft = Adafruit_ST7789(&spi1, TFT_CS, TFT_DC, TFT_RST);
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("=== WLK1501 (ST7789) 低引脚版本测试 ===");
+
+  pinMode(TFT_BL, OUTPUT);
+  digitalWrite(TFT_BL, HIGH);  // 若不亮，改 LOW
+
+  // 初始化 SPI：SCK=10, MOSI=9
+  spi1.begin(TFT_SCLK, -1, TFT_MOSI, TFT_CS);
+
+  // 初始化屏幕
+  tft.init(240, 240);          // 若不显示，再试 240x320
+  tft.setRotation(0);
+
+  // 输出纯色画面
+  tft.fillScreen(ST77XX_RED);
+  delay(1000);
+  tft.fillScreen(ST77XX_GREEN);
+  delay(1000);
+  tft.fillScreen(ST77XX_BLUE);
+  delay(1000);
+  tft.fillScreen(ST77XX_WHITE);
+  delay(1000);
+  tft.fillScreen(ST77XX_BLACK);
+}
+
+void loop() {}
