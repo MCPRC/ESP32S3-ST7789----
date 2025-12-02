@@ -90,11 +90,11 @@ void AppManager::stopCurrentApp() {
   if (_currentTaskHandle != nullptr) {
     Serial.printf("Stopping current app ID: 0x%02X\n", _currentAppId);
     
-    // 终止当前任务
+    // 直接终止任务
     vTaskDelete(_currentTaskHandle);
-    _currentTaskHandle = nullptr;
     
-    // 更新应用状态
+    // 重置应用状态
+    _currentTaskHandle = nullptr;
     _isAppRunning = false;
     _currentAppId = 0;
     

@@ -14,41 +14,14 @@ static uint8_t GB2312_16x16_BYTES = 32;
 #define FONT16_START GB2312_16x16_START
 #define FONT16_BYTES GB2312_16x16_BYTES
 
-// UTF-8 到 GB2312 转换表（简化版，仅包含常用字）
-static const struct {
-  uint32_t utf8;      // UTF-8 码点
-  uint16_t gb2312;    // GB2312 编码
-} utf8_to_gb2312[] = {
-  {0x4F60, 0xC4E3}, // 你
-  {0x597D, 0xBAC3}, // 好
-  {0x4E16, 0xCAC0}, // 世
-  {0x754C, 0xBCF4}, // 界
-  {0x7CFB, 0xCFB5}, // 系
-  {0x7EDF, 0xCDB3}, // 统
-  {0x521D, 0xB3F5}, // 初
-  {0x59CB, 0xCABC}, // 始
-  {0x5316, 0xBBAF}, // 化
-  {0x5B8C, 0xCDEA}, // 完
-  {0x6BD5, 0xB1D2}, // 毕
-  {0x4E00, 0xD2BB}, // 一
-  {0x4E8C, 0xB6FE}, // 二
-  {0x4E09, 0xC8FD}, // 三
-  {0x56DB, 0xCBC4}, // 四
-  {0x4E94, 0xCEE5}, // 五
-  {0x516D, 0xC1F9}, // 六
-  {0x4E03, 0xC6DF}, // 七
-  {0x516B, 0xB0CB}, // 八
-  // 可以根据需要添加更多常用字
-};
+// 包含自动生成的GB2312映射表
+#include "gb2312_map.h"
 
-// UTF-8 转 GB2312
+// UTF-8 转 GB2312 实现
+// 说明：使用自动生成的映射表，支持所有GB2312字符
 inline uint16_t utf8ToGb2312(uint32_t utf8) {
-  for (size_t i = 0; i < sizeof(utf8_to_gb2312) / sizeof(utf8_to_gb2312[0]); i++) {
-    if (utf8_to_gb2312[i].utf8 == utf8) {
-      return utf8_to_gb2312[i].gb2312;
-    }
-  }
-  return 0; // 未找到
+  // 使用生成的二分查找函数转换为GB2312编码
+  return unicode_to_gb2312(utf8);
 }
 
 // 计算 ASCII 字模偏移量
