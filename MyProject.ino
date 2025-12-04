@@ -16,14 +16,14 @@
 #include "apps/demo02/demo02.h"
 #include "apps/demo03/demo03.h"
 #include "apps/demo04/demo04.h"
-
-
+#include "apps/demo05/demo05.h"
 
 // 应用注册函数声明
 void register_demo01();
 void register_demo02();
 void register_demo03();
 void register_demo04();
+void register_demo05();
 // ESP-NOW 相关
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
@@ -110,6 +110,9 @@ void processSerialData() {
           } else if (appName.equals("demo04")) {
             Serial.println("Starting demo04...");
             AppManager::runApp(0x04);
+          } else if (appName.equals("demo05")) {
+            Serial.println("Starting demo05...");
+            AppManager::runApp(0x05);
           } else {
             Serial.printf("Unknown app name: %s\n", appName.c_str());
           }
@@ -186,6 +189,7 @@ void setup() {
   register_demo02();
   register_demo03();
   register_demo04();
+  register_demo05();
   
   // 自动运行 demo01，使用任务方式
   AppManager::runApp(0x01);
